@@ -11,44 +11,44 @@
 int main()
 {
 	HANDLE hCom;
-	hCom = CreateFile(_T("COM3"),//COM3¿Ú
-		GENERIC_READ | GENERIC_WRITE,//ÔÊĞí¶ÁºÍĞ´
-		0,//¶ÀÕ¼·½Ê½
+	hCom = CreateFile(_T("COM3"),//COM3å£
+		GENERIC_READ | GENERIC_WRITE,//å…è®¸è¯»å’Œå†™
+		0,//ç‹¬å æ–¹å¼
 		NULL,
-		OPEN_EXISTING,//´ò¿ª¶ø²»ÊÇ´´½¨
-		0,//Í¬²½·½Ê½
+		OPEN_EXISTING,//æ‰“å¼€è€Œä¸æ˜¯åˆ›å»º
+		0,//åŒæ­¥æ–¹å¼
 		NULL);
 	if(hCom == (HANDLE)-1)
 	{
-		printf("´ò¿ªCOMÊ§°Ü!\n");
+		printf("æ‰“å¼€COMå¤±è´¥!\n");
 		return FALSE;
 	}
 	else
 	{
-		printf("COM´ò¿ª³É¹¦£¡\n");
+		printf("COMæ‰“å¼€æˆåŠŸï¼\n");
 	}
-	SetupComm(hCom, 20480, 20480);//ÊäÈë»º³åÇøºÍÊä³ö»º³åÇøµÄ´óĞ¡¶¼ÊÇ1024
+	SetupComm(hCom, 20480, 20480);//è¾“å…¥ç¼“å†²åŒºå’Œè¾“å‡ºç¼“å†²åŒºçš„å¤§å°éƒ½æ˜¯1024
 
-	COMMTIMEOUTS TimeOuts;//Éè¶¨¶Á³¬Ê±
+	COMMTIMEOUTS TimeOuts;//è®¾å®šè¯»è¶…æ—¶
 	TimeOuts.ReadIntervalTimeout = 100;
 	TimeOuts.ReadTotalTimeoutMultiplier = 500;
 	TimeOuts.ReadTotalTimeoutConstant = 5000;
-	TimeOuts.WriteTotalTimeoutMultiplier = 500;//Éè¶¨Ğ´³¬Ê±
+	TimeOuts.WriteTotalTimeoutMultiplier = 500;//è®¾å®šå†™è¶…æ—¶
 	TimeOuts.WriteTotalTimeoutConstant = 2000;
-	SetCommTimeouts(hCom, &TimeOuts);//ÉèÖÃ³¬Ê±
+	SetCommTimeouts(hCom, &TimeOuts);//è®¾ç½®è¶…æ—¶
 
 	DCB dcb1;
 	GetCommState(hCom, &dcb1);
-	dcb1.BaudRate = 115200;//²¨ÌØÂÊÎª115200
-	dcb1.ByteSize = 8;//Ã¿¸ö×Ö½ÚÓĞ8Î»
-	dcb1.Parity = NOPARITY;//ÎŞÆæÅ¼Ğ£ÑéÎ»
-	dcb1.StopBits = TWOSTOPBITS;//Á½¸öÍ£Ö¹Î»
+	dcb1.BaudRate = 115200;//æ³¢ç‰¹ç‡ä¸º115200
+	dcb1.ByteSize = 8;//æ¯ä¸ªå­—èŠ‚æœ‰8ä½
+	dcb1.Parity = NOPARITY;//æ— å¥‡å¶æ ¡éªŒä½
+	dcb1.StopBits = TWOSTOPBITS;//ä¸¤ä¸ªåœæ­¢ä½
 	dcb1.fParity = FALSE;
 	dcb1.fNull = FALSE;
 	SetCommState(hCom, &dcb1);
-	int wCount = 256;//¶ÁÈ¡µÄ×Ö½ÚÊı
-	int wCount1;
-	PurgeComm(hCom, PURGE_TXCLEAR|PURGE_RXCLEAR);//Çå¿Õ»º³åÇø
+	DWORD wCount = 256;//è¯»å–çš„å­—èŠ‚æ•°
+	DWORD wCount1;
+	PurgeComm(hCom, PURGE_TXCLEAR|PURGE_RXCLEAR);//æ¸…ç©ºç¼“å†²åŒº
 	while(1)
 	{
 		int i = 0;
@@ -56,11 +56,11 @@ int main()
 		unsigned char str[256];
 		if(!ReadFile(hCom, str, wCount, &wCount1, NULL))
 		{
-			printf("¶Á´®¿ÚÊ§°Ü!");
+			printf("è¯»ä¸²å£å¤±è´¥!");
 			return FALSE;
 		}
-		fp1 = fopen("´®¿Ú·¢ËÍµÄÊı.txt", "a+");
-		printf("¶Á´®¿Ú³É¹¦!\n");
+		fp1 = fopen("ä¸²å£å‘é€çš„æ•°.txt", "a+");
+		printf("è¯»ä¸²å£æˆåŠŸ!\n");
 		if(wCount1 > 0)
 		{
 
@@ -69,8 +69,8 @@ int main()
 		{
 
 		}
-		printf("¶ÁÈ¡³¤¶ÈÎª:%d\n", wCount1);
-		printf("¶ÁÈ¡Êı¾İÎª:\n");
+		printf("è¯»å–é•¿åº¦ä¸º:%d\n", wCount1);
+		printf("è¯»å–æ•°æ®ä¸º:\n");
 		for(i=0; i< wCount1; i++)
 		{
 			printf("%02X ", str[i]);
