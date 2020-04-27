@@ -1,0 +1,385 @@
+using namespace std
+#include <stdio.h>
+#include <iostream>
+#include <fstream>
+#include <cassert>
+#include <string>
+#include <queue>
+#include <stdlib.h>
+#include <vector>
+#include <cmath>
+
+int strhex_deci (char k )
+{
+	char*k_ = &k;
+	if (k == 'A')
+	{
+		return 10 ;
+	}
+	else if (k == 'B')
+	{
+		return 11 ;
+	}
+	else if (k == 'C')
+	{
+		return 12 ;
+	}
+	else if (k == 'D')
+	{
+		return 13 ;
+	}
+	else if (k == 'E')
+	{
+		return 14 ;
+	}
+	else if (k == 'F')
+	{
+		return 15 ;
+	}
+	else
+	{
+		return atoi(k_) ;
+	}
+}
+
+int signhex (char k , char p,char l,char i)
+{
+	unsigned short int k_ , p_ ,l_,i_ ,sum;
+	short int p1 ;
+	k_= strhex_deci(k) ;
+	p_ = strhex_deci(p) ;
+	l_ = strhex_deci(l) ;
+	i_ = strhex_deci(i) ; 
+	sum = k_*16*16*16+p_*16*16+l_*16+i_ ;
+	p1 = sum ;
+	return p1;
+}
+
+struct move 
+{
+	double c00;
+	double c01;
+	double c02;
+	double c10;
+	double c11;
+	double c12;
+	double c20;
+	double c21;
+	double c22;
+};
+
+move changecoordinate(double op,double of,double oh)
+{
+	move movec ;
+	movec.c00 = cos((of*3.14)/180)*cos((op*3.14)/180) ;
+	movec.c01 = cos((oh*3.14)/180)*sin((op*3.14)/180)-sin((oh*3.14)/180)*sin((of*3.14)/180)*cos((op*3.14)/180);
+	movec.c02 = sin((oh*3.14)/180)*sin((op*3.14)/180)+cos((oh*3.14)/180)*sin((of*3.14)/180)*cos((op*3.14)/180) ;
+	movec.c10 = -cos((of*3.14)/180)*sin((op*3.14)/180) ;
+	movec.c11 = cos((oh*3.14)/180)*cos((op*3.14)/180)+sin((oh*3.14)/180)*sin((of*3.14)/180)*sin((op*3.14)/180) ; 
+	movec.c12 =  sin((oh*3.14)/180)*cos((op*3.14)/180)-cos((oh*3.14)/180)*sin((of*3.14)/180)*sin((op*3.14)/180) ;
+	movec.c20 = -sin((of*3.14)/180) ;
+	movec.c21 = -sin((oh*3.14)/180)*cos((of*3.14)/180) ;
+	movec.c22 = cos((oh*3.14)/180)*cos((of*3.14)/180) ;
+	return movec ;
+}
+
+move changecoordinate_four (double op , double of , double oh)
+{
+	move movec ;
+	double lamuda , p1 ,p2,p3 ;
+	lamuda = cos((0.5*op*3.14)/180)*cos((0.5*of*3.14)/180)*cos((0.5*oh*3.14)/180) + sin((0.5*op*3.14)/180)*sin((0.5*of*3.14)/180)*sin((0.5*oh*3.14)/180);
+	p1 = cos((0.5*op*3.14)/180)*cos((0.5*of*3.14)/180)*sin((0.5*oh*3.14)/180) - sin((0.5*op*3.14)/180)*sin((0.5*of*3.14)/180)*cos((0.5*oh*3.14)/180);
+	p2 = cos((0.5*op*3.14)/180)*sin((0.5*of*3.14)/180)*cos((0.5*oh*3.14)/180) + sin((0.5*op*3.14)/180)*cos((0.5*of*3.14)/180)*sin((0.5*oh*3.14)/180);		p3 = sin((0.5*op*3.14)/180)*cos((0.5*of*3.14)/180)*cos((0.5*oh*3.14)/180) - cos((0.5*op*3.14)/180)*sin((0.5*of*3.14)/180)*sin((0.5*oh*3.14)/180);
+	movec.c00 = lamuda*lamuda + p1*p1 - p2*p2 - p3*p3;
+	movec.c01 = 2*(p1*p2-lamuda*p3) ;
+	movec.c02 = 2*(p1*p3+lamuda*p2) ;
+	movec.c10 = 2*(p1*p2+lamuda*p3) ;
+	movec.c11 = lamuda*lamuda + p2*p2 - p1*p1 - p3*p3; 
+	movec.c12 = 2*(p2*p3-lamuda*p1) ;
+	movec.c20 = 2*(p1*p3-lamuda*p2) ;
+	movec.c21 = 2*(p2*p3+lamuda*p1) ;
+	movec.c22 = lamuda*lamuda + p3*p3 - p1*p1 - p2*p2;
+	return movec;
+}
+
+struct v_d 
+{
+	double next_velocity;
+	double next_distance;
+};
+
+v_d distanceit (double a0 , double a1 , double this_velocity , double this_distance)
+{
+	double derta_time = 0.02;
+	double next_v ,next_d, derta_velocity , derta_distance;
+	v_d next;
+	if (a0*a1 >=0 )
+		{
+			derta_velocity = (a0 + a1) * derta_time * 0.5 ;
+			cout<<"ax0 "<<a0<<" ax1 "<<a1<<endl;
+			cout<<"derta_velocity"<<derta_velocity<<endl;
+			next_v = this_velocity + derta_velocity ;
+			cout<<"next_velocity"<<next_v<<endl ;
+			next.next_velocity = next_v ;    //代替velocity.push_back(next_velocity) ;
+			if ((this_velocity*next_v) >=0 )
+			{
+				derta_distance = (this_velocity + next_v) * derta_time * 0.5 ;
+				cout<<"derta_distance"<<derta_distance<<endl;
+			}
+			else if((this_velocity*next_v) < 0)
+			{
+				derta_distance = ((this_velocity*fabs(this_velocity)+next_v*fabs(next_v)) *derta_time * 0.5 ) / (fabs(this_velocity)+fabs(next_v));
+				cout<<"derta_distance"<<derta_distance<<endl;
+			}
+			next_d = this_distance + derta_distance ;
+			cout<<"next_distance"<<next_d<<endl;
+			next.next_distance = next_d ;
+			/*distance.push_back(next_distance) ;
+			this_velocity = next_velocity ;
+			this_distance = next_distance ;*/
+		}
+	else if (a0*a1 < 0)
+		{
+			derta_velocity = ((a0*fabs(a0)+a1*fabs(a1)) *derta_time * 0.5 ) / (fabs(a0)+fabs(a1)) ;
+			cout<<"ax0 "<<a0<<" ax1 "<<a1<<endl;
+			cout<<"derta_velocity"<<derta_velocity<<endl;
+			next_v = this_velocity + derta_velocity ;
+			cout<<"next_velocity"<<next_v<<endl ;
+			next.next_velocity = next_v ;    //代替velocity.push_back(next_velocity) ;
+			if ((this_velocity*next_v) >=0 )
+			{
+				derta_distance = (this_velocity + next_v) * derta_time * 0.5 ;
+				cout<<"derta_distance"<<derta_distance<<endl;
+			}
+			else if((this_velocity*next_v) < 0)
+			{
+				derta_distance = ((this_velocity*fabs(this_velocity)+next_v*fabs(next_v)) *derta_time * 0.5 ) / (fabs(this_velocity)+fabs(next_v));
+				cout<<"derta_distance"<<derta_distance<<endl;
+			}
+			next_d = this_distance + derta_distance ;
+			cout<<"next_distance"<<next_d<<endl;
+			next.next_distance = next_d ;
+		}
+	return next ;
+}
+
+double quzao (double a , double b,double c,double d,double e,double f,double g,double h)
+{
+	double a_avg;
+	a_avg = (a+b+c+d+e+f+g+h)/8 ;
+	return a_avg;
+}
+
+int main ()
+{
+	 /*cout<<signhex('F','F','3','8')<<endl;
+	 char data[]={'B','A','A','A','0','0','C','8','0','0','0','0','F','0','0','0','A','B','B','A','A','A','F','F','3','8','0','0','0','0','F','0','0','0','A','B','B','A','A','A','0','0','6','4','0','0','0','0','F','0','0','0','A','B','B','A','A','A','F','E','7','0','0','0','0','0','F','0','0','0','A','B'};
+	 //,'B','A','A','E','1','C','8','D','4','4','5','E','1','F','B','8','A','B'};
+*/
+	ifstream infile ; 
+    string file ;
+    file = "stay.txt" ;
+    infile.open(file.data());   //将文件流对象与文件连接起来
+    assert(infile.is_open());   //若失败,则输出错误消息,并终止程序运行
+	//读取文件，正式内容可删 
+    char c ;
+    vector<char> in_data ;
+    vector<char> org_data;
+    while (!infile.eof())
+    {
+        infile >> c;
+        org_data.push_back(c) ;
+    }
+    infile.close();
+	//从数组org_data中读取数据，并进行操作 
+	int letter_num , num , n , oula_k , tuple_num=0 ;
+	int start ;
+    char k ;
+    vector<char> oula ;
+    vector<char> accelerate;
+	//识别数据是否是所需数据BA开头 
+    for (int i=0 ; i<org_data.size() ; i++)
+    {
+    	if (org_data[i] == 'B' && org_data[i+1] == 'A')
+    	{
+    		start = i;
+    		break;
+		}
+	}
+	//把真正需要的数据纳入in_data数组 
+	for (int i=start; i<org_data.size() ; i++)
+	{
+		in_data.push_back(org_data[i]) ;
+	}
+    letter_num = in_data.size() ;
+    n = letter_num / 18 ;
+    //分类数据：欧拉角，加速度 
+    for ( num=0 ; num<n ; num ++)
+    {
+        if (in_data[2+num*18] == 'A' && in_data[3+num*18] == 'E') //识别欧拉角数据,写入数组
+        {
+        	for ( oula_k=0 ; oula_k<18 ; oula_k++) 
+        	{
+        		k = in_data[oula_k+num*18] ;
+        		oula.push_back (k);
+			}
+        }
+        else if (in_data[2+num*18] == 'A' && in_data[3+num*18] == 'A') //识别加速度数据,写入数组
+        {
+        	for ( oula_k=0 ; oula_k<18 ; oula_k++) 
+        	{
+        		k = in_data[oula_k+num*18] ;
+        		accelerate.push_back (k);
+			}
+        }
+    }
+    /*
+    for (int i=0 ; i<accelerate.size();i++)
+    {
+    	cout<<accelerate[i]<<" ;";
+	}
+    */
+	//每计算一次a，都要分别减去重力加速度分量
+	 
+	//计算欧拉角数据
+	double Ao , Bo , Co;
+	vector<double> of0 , op0 , oh0 ,of , op , oh;
+	n = oula.size()/18 ; 
+	for (int i=0 ; i<n ; i++)
+	{
+		Ao = signhex(oula[18*i+4],oula[18*i+5],oula[18*i+6],oula[18*i+7]) ;
+		Bo = signhex(oula[18*i+8],oula[18*i+9],oula[18*i+10],oula[18*i+11]) ;
+		Co = signhex(oula[18*i+12],oula[18*i+13],oula[18*i+14],oula[18*i+15]) ;
+		of0.push_back(Ao) ;
+		oh0.push_back(Bo) ;
+		op0.push_back(Co) ;
+	} 
+	//滑动框平均去噪  
+	n = of0.size() ;
+	for (int i=0 ; i<n ; i++)
+	{
+		Ao = quzao (of0[i],of0[i+1],of0[i+2],of0[i+3],of0[i+4],of0[i+5],of0[i+6],of0[i+7])*0.01;
+		Bo = quzao (oh0[i],oh0[i+1],oh0[i+2],oh0[i+3],oh0[i+4],oh0[i+5],oh0[i+6],oh0[i+7])*0.01; 
+		Co = quzao (op0[i],op0[i+1],op0[i+2],op0[i+3],op0[i+4],op0[i+5],op0[i+6],op0[i+7])*0.01;
+		of.push_back(Ao) ;
+		oh.push_back(Bo) ;
+		op.push_back(Co) ;
+		cout<<i<<" " ;
+	}
+	//cout<<"要开始计算加速度了"<<endl; 
+	vector<double> ax , ay , az ,ax0 , ay0 , az0;
+	ax.push_back(0) ;
+	ay.push_back(0) ;
+	az.push_back(0) ;
+	double A , B , C ,A1 , B1 , C1 ,gx ,gy ,gz , g=9.8 , c13 , c23 , c33;
+	move movec ;
+	n = in_data.size()/54 ; 
+	for (int i=0 ; i<n ; i++)    //计算加速度 
+	{
+		A = signhex(accelerate[18*i+4],accelerate[18*i+5],accelerate[18*i+6],accelerate[18*i+7]) ;
+		B = signhex(accelerate[18*i+8],accelerate[18*i+9],accelerate[18*i+10],accelerate[18*i+11]) ;
+		C = signhex(accelerate[18*i+12],accelerate[18*i+13],accelerate[18*i+14],accelerate[18*i+15]) ;
+		ax0.push_back(A) ;
+		ay0.push_back(B) ;
+		az0.push_back(C) ;
+	}
+	/*//验证收录数据是否正确 
+	for (int i=0 ; i<ax0.size() ; i++)
+	{
+		cout<<i<<"az0:"<<az0[i]*0.01<<" ;" ;
+	}*/
+	//滑动框平均去噪 ,并将加速度减去g分量通过ceb矩阵逆转到绝对坐标系，得到ax,ay,az为在绝对坐标系三轴方向加速度。 
+	for (int i=0 ; i<(ax0.size()-8); i++)
+	{
+		c13 = -sin((of[i]*3.14)/180); 
+	 	c23 = sin((oh[i]*3.14)/180)*cos((of[i]*3.14)/180);
+	 	c33 = cos((oh[i]*3.14)/180)*cos((of[i]*3.14)/180);
+		A = quzao (ax0[i],ax0[i+1],ax0[i+2],ax0[i+3],ax0[i+4],ax0[i+5],ax0[i+6],ax0[i+7])*0.01-9.8*c13;
+		B = quzao (ay0[i],ay0[i+1],ay0[i+2],ay0[i+3],ay0[i+4],ay0[i+5],ay0[i+6],ay0[i+7])*0.01-9.8*c23; 
+		C = quzao (az0[i],az0[i+1],az0[i+2],az0[i+3],az0[i+4],az0[i+5],az0[i+6],az0[i+7])*0.01-9.8*c33;
+		movec = changecoordinate(op[i],of[i],oh[i]);
+		A1 = A*movec.c00 + B*movec.c01 + C*movec.c02 ;
+		B1 = A*movec.c10 + B*movec.c11 + C*movec.c12 ;
+		C1 = A*movec.c20 + B*movec.c21 + C*movec.c22 ;
+		ax.push_back(A1) ;
+		ay.push_back(B1) ;
+		az.push_back(C1) ;
+	}
+	//输出z轴全部加速度检验是否去除了重力加速度	
+	for (int i=0 ; i<ax.size() ; i++)
+	{
+		cout<<"ax:"<<ax[i]<<" ;" ;
+	}
+	//计算绝对坐标系中三个方向上的运动距离 
+	double derta_velocity,derta_distance,this_velocity=0,next_velocity,this_distance=0,next_distance ;
+	double *a0 , *a1 ;
+	vector <double> xdistance , xvelocity ,ydistance , yvelocity,zdistance , zvelocity;
+	xvelocity.push_back(0) ;
+	yvelocity.push_back(0) ;
+	zvelocity.push_back(0) ;
+	v_d next ; 
+	for (int i=0 ; i<ax.size()-1 ; i++)
+	{
+		a0 = &ax[i] ;
+		a1 = &ax[i+1] ;
+		next = distanceit(*a0, *a1,this_velocity , this_distance) ;
+		xvelocity.push_back(next.next_velocity);
+		xdistance.push_back(next.next_distance);
+		this_velocity = next.next_velocity ;
+		this_distance = next.next_distance ;
+		//cout<<xdistance[i]<<" ;" ;
+	}
+	this_velocity = 0 ;
+	this_distance = 0 ;
+	for (int i=0 ; i<ay.size()-1 ; i++)
+	{
+		a0 = &ay[i] ;
+		a1 = &ay[i+1] ;
+		next = distanceit(*a0, *a1,this_velocity , this_distance) ;
+		yvelocity.push_back(next.next_velocity);
+		ydistance.push_back(next.next_distance);
+		this_velocity = next.next_velocity ;
+		this_distance = next.next_distance ;
+	}
+	this_velocity = 0 ;
+	this_distance = 0 ;
+	for (int i=0 ; i<az.size()-1 ; i++)
+	{
+		a0 = &az[i] ;
+		a1 = &az[i+1] ;
+		next = distanceit(*a0, *a1,this_velocity , this_distance) ;
+		zvelocity.push_back(next.next_velocity);
+		zdistance.push_back(next.next_distance);
+		this_velocity = next.next_velocity ;
+		this_distance = next.next_distance ;
+	}
+	cout<<endl<<"dx:"<<xdistance[xdistance.size()-1] ;
+	cout<<endl<<"dy:"<<ydistance[ydistance.size()-1] ;
+	cout<<endl<<"dz:"<<zdistance[zdistance.size()-1] ;
+	//转换坐标系
+	/*vector <double> ex_team , ey_team , ez_team; 
+	double ex,ey,ez ;
+	n = of.size();
+	for (int i=0 ; i<n ; i++)
+	{
+		movec = changecoordinate(op[i],of[i],oh[i]) ;
+		//矩阵乘法，将载体坐标系转换为初始坐标系 
+		ex = xdistance[i]*movec.c00 + ydistance[i]*movec.c01 + zdistance[i]*movec.c02 ;
+		ey = xdistance[i]*movec.c10 + ydistance[i]*movec.c11 + zdistance[i]*movec.c12 ;
+		ez = xdistance[i]*movec.c20 + ydistance[i]*movec.c21 + zdistance[i]*movec.c22 ;
+		ex_team.push_back(ex);
+		ey_team.push_back(ey);
+		ez_team.push_back(ez);
+	} 
+	cout<<"变换后："<< ex_team[ex_team.size()-1] <<" ;"<<ey_team[ey_team.size()-1]<<" ;"<<ez_team[ez_team.size()-1];
+	//计算每一组数据带来的空间移动 
+	double xs,ys,zs,reals;
+	n = ex_team.size();
+	for (int i=0 ; i<n ; i++)
+	{
+		xs = ex_team[i];
+		ys = ey_team[i];
+		zs = ez_team[i];
+	}*/ 
+	return 0 ;
+}
