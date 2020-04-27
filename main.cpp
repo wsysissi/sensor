@@ -1,3 +1,4 @@
+using namespace std
 #define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <stdio.h>
@@ -48,12 +49,15 @@ int main()
 	SetCommState(hCom, &dcb1);
 	DWORD wCount = 256;//读取的字节数
 	DWORD wCount1;
+	vector <unsigned char> in_data ;
 	PurgeComm(hCom, PURGE_TXCLEAR|PURGE_RXCLEAR);//清空缓冲区
+	int n=0;
 	while(1)
 	{
-		int i = 0;
+		int i = 0 ;
 		FILE *fp1;
 		unsigned char str[256];
+		int integer[256] ;
 		if(!ReadFile(hCom, str, wCount, &wCount1, NULL))
 		{
 			printf("读串口失败!");
@@ -61,6 +65,7 @@ int main()
 		}
 		fp1 = fopen("串口发送的数.txt", "a+");
 		printf("读串口成功!\n");
+		/*
 		if(wCount1 > 0)
 		{
 
@@ -68,16 +73,21 @@ int main()
 		else
 		{
 
-		}
+		}*/
 		printf("读取长度为:%d\n", wCount1);
 		printf("读取数据为:\n");
+		printf("读取了%d轮\n",n);
 		for(i=0; i< wCount1; i++)
 		{
-			printf("%02X ", str[i]);
 			fprintf(fp1, "%02X ", str[i]);
+			in_data.push_back(str[i]) ;
+			//printf("%02X ",in_data[i+256*n]);
 		}
+    		n=n+1;
 		printf("\n");
 		fclose(fp1);
+		
+		// 
 	}
 
 	CloseHandle(hCom);
@@ -86,5 +96,4 @@ int main()
 
 	return 0;
 }
-
 
