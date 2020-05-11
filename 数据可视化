@@ -1,0 +1,73 @@
+import matplotlib.pyplot as plot
+import re
+import string
+import math
+
+def get_need(data):
+    data_need = []
+    for i in (0,len(data)):
+        if data[i] == "BA" :
+            num = i
+            break
+    k = i
+    while k < len(data):
+        data_need.append(data[k])
+        k += 1
+    return data_need
+
+def get_x (data):
+    data_x = []
+    for i in (0,len(data)+1):
+        if data[i] == "BA" and data[i+1] == "AA" :
+            num = i
+            break
+    k = i
+    while k < len(data):
+        data_need.append(data[k])
+        k += 1
+    return data_need
+
+def drow_static (filename1,filename2):
+    data_ax = open(filename1,"r")
+    time_list1 = []
+    value_list1 = []
+    value1 = data_ax.read()
+    n_value_list1 = value1.split()
+    k = 1
+    for i in n_value_list1 :
+        value_list1.append(float(i))
+        time_list1.append(k*0.02)
+        k+=1
+
+    data_of = open(filename2,"r")
+    time_list2 = []
+    value_list2 = []
+    value2 = data_of.read()
+    n_value_list2 = value2.split()
+    k = 1
+    for i in n_value_list2 :
+        calculate_ax = math.sin(math.radians(float(i)))
+        value_list2.append(0-calculate_ax*9.8)
+        time_list2.append(k*0.02)
+        k+=1
+        
+    plot.figure("x oiginal data")
+    ax = plot.gca()
+    ax.set_xlabel("t")
+    ax.set_ylabel("ax0")
+    ax.plot(time_list1,value_list1,label='实际接收数据ax')
+    ax.plot(time_list2,value_list2,label='g*sin(俯仰角)')
+    plot.show()
+
+    percentage = []
+    for i in range(0,len(value_list2)):#计算误差百分数
+        ax = value_list1[i]
+        sing = value_list2[i]
+        plus = ax+sing
+        per = plus/ax
+        percentage.append(float('%.2f'%per))
+    avg_per = sum(percentage)/len(percentage)
+    print(avg_per)
+
+drow_static("C:/Users/86130/Desktop/sensor/sensor/x_org.txt","C:/Users/86130/Desktop/sensor/sensor/of.txt")
+
